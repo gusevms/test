@@ -10,40 +10,40 @@ use src\Integration\DataProvider;
 
 class DecoratorManager extends DataProvider
 {
-	private $cache;
-	private $logger;
+    private $cache;
+    private $logger;
 	
-	public function __construct($host, $user, $password, CacheItemPoolInterface $cache, LoggerInterface $logger)
+    public function __construct($host, $user, $password, CacheItemPoolInterface $cache, LoggerInterface $logger)
     {
-		parent::__construct($host, $user, $password);
-		$this->cache = $cache;
-		$this->logger = $logger;
-	}
+        parent::__construct($host, $user, $password);
+        $this->cache = $cache;
+        $this->logger = $logger;
+    }
 	
-	public function getResponse(array &$input)
+    public function getResponse(array &$input)
     {
-		try
-		{
-			$cacheKey = gzcompress(json_encode($input));
-			$cacheItem = $this->cache->getItem($cacheKey);
-			if ($cacheItem->isHit())
-			{
-				return $cacheItem->get();
-			}
+        try
+        {
+            $cacheKey = gzcompress(json_encode($input));
+            $cacheItem = $this->cache->getItem($cacheKey);
+            if ($cacheItem->isHit())
+            {
+                return $cacheItem->get();
+            }
             $result = parent::get($input);
             $cacheItem
-				->set($result)
+                ->set($result)
                 ->expiresAt(
-					(new DateTime())->modify('+1 day')
-				);
+                    (new DateTime())->modify('+1 day')
+		);
 				
-			return $result;
-		} 
-		catch (Exception $e)
-		{
-			$this->logger->critical($e->getMessage());
+	    return $result;
+        } 
+	catch (Exception $e)
+	{
+            $this->logger->critical($e->getMessage());
         }
 		
-		return [];
-	}
+        return [];
+    }
 }
